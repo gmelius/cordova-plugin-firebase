@@ -5,12 +5,23 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
-import android.app.Notification;
 import android.text.TextUtils;
 import android.content.ContentResolver;
 import android.graphics.Color;
@@ -18,12 +29,19 @@ import android.graphics.Color;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 public class FirebasePluginMessagingService extends FirebaseMessagingService {
 
+    public static final String SHARED_PREFERENCES_REF = "notificationSharedPreferences";
+
     private static final String TAG = "FirebasePlugin";
+    private static HashMap<Integer, NotificationCompat.InboxStyle> inboxStyles = null;
+    SharedPreferences sharedPreferences = null;
 
     /**
      * Get a string from resources without importing the .R package
@@ -65,6 +83,7 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
             return;
         }
 
+
         // TODO(developer): Handle FCM messages here.
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         String title;
@@ -72,18 +91,27 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
         String id;
         String sound = null;
         String lights = null;
+        String icon = null;
+        String tag;
+        String typeNotif;
         Map<String, String> data = remoteMessage.getData();
 
         if (remoteMessage.getNotification() != null) {
             title = remoteMessage.getNotification().getTitle();
             text = remoteMessage.getNotification().getBody();
             id = remoteMessage.getMessageId();
+            icon = remoteMessage.getNotification().getIcon();
+            tag = remoteMessage.getNotification().getTag();
+            typeNotif = data.get("typeNotif");
         } else {
             title = data.get("title");
             text = data.get("text");
             id = data.get("id");
             sound = data.get("sound");
             lights = data.get("lights"); //String containing hex ARGB color, miliseconds on, miliseconds off, example: '#FFFF00FF,1000,3000'
+            icon = data.get("icon");
+            tag = data.get("tag");
+            typeNotif = data.get("typeNotif");
 
             if (TextUtils.isEmpty(text)) {
                 text = data.get("body");
@@ -102,46 +130,125 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
         Log.d(TAG, "Notification Message Body/Text: " + text);
         Log.d(TAG, "Notification Message Sound: " + sound);
         Log.d(TAG, "Notification Message Lights: " + lights);
+        Log.d(TAG, "Notification Message Icon: " + icon);
 
         // TODO: Add option to developer to configure if show notification when app on foreground
         if (!TextUtils.isEmpty(text) || !TextUtils.isEmpty(title) || (!data.isEmpty())) {
             boolean showNotification = (FirebasePlugin.inBackground() || !FirebasePlugin.hasNotificationsCallback()) && (!TextUtils.isEmpty(text) || !TextUtils.isEmpty(title));
-            sendNotification(id, title, text, data, showNotification, sound, lights);
+            sendNotification(id, title, text, data, showNotification, sound, lights, icon, tag, typeNotif);
         }
 
     }
 
-    private void sendNotification(String id, String title, String messageBody, Map<String, String> data, boolean showNotification, String sound, String lights) {
+    private void sendNotification(String id, String title, String messageBody, Map<String, String> data, boolean showNotification, String sound, String lights, String icon, String tag, String typeNotif) {
         Bundle bundle = new Bundle();
         for (String key : data.keySet()) {
             bundle.putString(key, data.get(key));
         }
 
         if (showNotification) {
+            int summaryId = tag.hashCode() + typeNotif.hashCode();
+            String groupName = tag + typeNotif;
+
+            sharedPreferences = this.getSharedPreferences(SHARED_PREFERENCES_REF, MODE_PRIVATE);
+
+            // Intent for notification open
             Intent intent = new Intent(this, OnNotificationOpenReceiver.class);
             intent.putExtras(bundle);
+            intent.putExtra("groupName", groupName);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            // Intent for notification deleted
+            Intent onNotificationDeleteIntent = new Intent(this, OnNotificationDeletedReceiver.class);
+            onNotificationDeleteIntent.putExtra("groupName", groupName);
+            PendingIntent deletePendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), onNotificationDeleteIntent, 0);
+
 
             String channelId = this.getStringResource("default_notification_channel_id");
             String channelName = this.getStringResource("default_notification_channel_name");
             Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
+
+            int count = sharedPreferences.getInt(groupName, 0) + 1;
+
+            if (inboxStyles == null) {
+                inboxStyles = new HashMap<>();
+                count = 1;
+            }
+
+            sharedPreferences
+                    .edit()
+                    .putInt(groupName, count)
+                    .apply();
+
+            NotificationCompat.InboxStyle inboxStyle = inboxStyles.get(summaryId);
+
+            // If inboxStyle don't exist, create it and add it to the HashMap<>
+            // Or if notification have been deleted, recreate inboxStyle
+            if (inboxStyle == null || count == 1) {
+                inboxStyle = new NotificationCompat.InboxStyle()
+                        .setSummaryText(tag);
+                inboxStyles.put(summaryId, inboxStyle);
+            }
+
+            Spannable sb = new SpannableString(title + " " + messageBody);
+            sb.setSpan(new ForegroundColorSpan(Color.WHITE), 0, title.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            inboxStyle.addLine(sb);
+
+
+            // Create BitTextStyle for notification
+            NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle()
+                    .bigText(messageBody)
+                    .setSummaryText(tag);
+
+            int resID = getResources().getIdentifier("notification_icon", "drawable", getPackageName());
+            // 'Basic' notification
             NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId);
             notificationBuilder
                     .setContentTitle(title)
                     .setContentText(messageBody)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                    .setStyle(new NotificationCompat.BigTextStyle().bigText(messageBody))
+                    .setStyle(bigTextStyle)
                     .setAutoCancel(true)
                     .setSound(defaultSoundUri)
                     .setContentIntent(pendingIntent)
-                    .setPriority(NotificationCompat.PRIORITY_MAX);
-
-            int resID = getResources().getIdentifier("notification_icon", "drawable", getPackageName());
+                    .setDeleteIntent(deletePendingIntent)
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setGroup(groupName);
             if (resID != 0) {
                 notificationBuilder.setSmallIcon(resID);
             } else {
                 notificationBuilder.setSmallIcon(getApplicationInfo().icon);
+            }
+
+            // Sumamry notification
+            NotificationCompat.Builder summaryNotificationBuilder = new NotificationCompat.Builder(this, channelId)
+                    .setContentTitle(count + " " + getSummaryTitle(typeNotif))
+                    .setContentText(tag)
+                    .setStyle(inboxStyle)
+                    .setContentIntent(pendingIntent)
+                    .setDeleteIntent(deletePendingIntent)
+                    .setGroup(groupName)
+                    .setAutoCancel(true)
+                    .setGroupSummary(true);
+            if (resID != 0) {
+                summaryNotificationBuilder.setSmallIcon(resID);
+            } else {
+                summaryNotificationBuilder.setSmallIcon(getApplicationInfo().icon);
+            }
+
+
+            if (icon != null) {
+                try {
+                    URL url = new URL(icon);
+                    Bitmap bitmapIcon = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                    // Make icon rounded
+                    bitmapIcon = getRoundedCornerBitmap(bitmapIcon);
+
+                    notificationBuilder.setLargeIcon(bitmapIcon);
+                } catch (IOException e) {
+
+                }
             }
 
             if (sound != null) {
@@ -173,14 +280,15 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
                 
             }
 
-            Notification notification = notificationBuilder.build();
+            /* Notification notification = notificationBuilder.build();
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                 int iconID = android.R.id.icon;
                 int notiID = getResources().getIdentifier("notification_big", "drawable", getPackageName());
                 if (notification.contentView != null) {
                     notification.contentView.setImageViewResource(iconID, notiID);
                 }
-            }
+            }*/
+
             NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
             // Since android Oreo notification channel is needed.
@@ -189,7 +297,11 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
                 notificationManager.createNotificationChannel(channel);
             }
 
-            notificationManager.notify(id.hashCode(), notification);
+            // Build and display notifiaction
+            notificationManager.notify(id.hashCode(), notificationBuilder.build());
+            if (count > 1) {
+                notificationManager.notify(summaryId, summaryNotificationBuilder.build());
+            }
         } else {
             bundle.putBoolean("tap", false);
             bundle.putString("title", title);
@@ -197,4 +309,55 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
             FirebasePlugin.sendNotification(bundle, this.getApplicationContext());
         }
     }
+
+    private static String getSummaryTitle (String typeNotif) {
+        String text = "news";
+
+        switch (typeNotif) {
+            case "newEmail":
+                text = "new mails";
+                break;
+            case "tracking":
+                text = "new opens";
+                break;
+            case "notes":
+                text = "new notes";
+                break;
+            case "campaigns":
+                text = "new campaigns";
+                break;
+            case "assign":
+                text = "new assigns";
+                break;
+            case "kanban":
+                text = "new kanban";
+                break;
+        }
+
+        return text;
+    }
+
+    /**** https://ruibm.com/2009/06/16/rounded-corner-bitmaps-on-android/ ****/
+    private static Bitmap getRoundedCornerBitmap(Bitmap bitmap) {
+        Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
+                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(output);
+
+        final int color = 0xff424242;
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        final RectF rectF = new RectF(rect);
+        final float roundPx = 10000;
+
+        paint.setAntiAlias(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(color);
+        canvas.drawRoundRect(rectF, roundPx, roundPx, paint);
+
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(bitmap, rect, rect, paint);
+
+        return output;
+    }
+
 }
