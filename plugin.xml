@@ -14,6 +14,7 @@ xmlns:android="http://schemas.android.com/apk/res/android">
 		<js-module name="FirebasePlugin" src="www/firebase.js">
 			<clobbers target="FirebasePlugin" />
 		</js-module>
+		
 		<config-file parent="/*" target="res/xml/config.xml">
 			<feature name="FirebasePlugin">
 				<param name="android-package" value="org.apache.cordova.firebase.FirebasePlugin" />
@@ -43,12 +44,13 @@ xmlns:android="http://schemas.android.com/apk/res/android">
 				</intent-filter>
 			</service>
 			<receiver android:name="org.apache.cordova.firebase.OnNotificationOpenReceiver"></receiver>
-			<receiver android:name="org.apache.cordova.firebase.OnNotificationDeletedReceiver" />
+			<receiver android:name="org.apache.cordova.firebase.OnNotificationDeletedReceiver"></receiver>
 		</config-file>
 		<resource-file src="src/android/google-services.json" target="."/>
 		<resource-file src="src/android/cordova-plugin-firebase-strings.xml" target="res/values/cordova-plugin-firebase-strings.xml" />
 		<source-file src="src/android/FirebasePlugin.java" target-dir="src/org/apache/cordova/firebase" />
 		<source-file src="src/android/OnNotificationOpenReceiver.java" target-dir="src/org/apache/cordova/firebase" />
+		<source-file src="src/android/OnNotificationDeletedReceiver.java" target-dir="src/org/apache/cordova/firebase" />
 		<source-file src="src/android/FirebasePluginInstanceIDService.java" target-dir="src/org/apache/cordova/firebase" />
 		<source-file src="src/android/FirebasePluginMessagingService.java" target-dir="src/org/apache/cordova/firebase" />
 		<source-file src="src/android/FirebasePluginMessageReceiver.java" target-dir="src/org/apache/cordova/firebase" />
