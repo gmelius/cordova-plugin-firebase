@@ -1,6 +1,6 @@
 package org.apache.cordova.firebase;
 
-import android.app.PendingIntent;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import static android.content.Context.MODE_PRIVATE;
+import static android.content.Context.NOTIFICATION_SERVICE;
 import static org.apache.cordova.firebase.FirebasePluginMessagingService.SHARED_PREFERENCES_REF;
 
 public class OnNotificationOpenReceiver extends BroadcastReceiver {
@@ -29,6 +30,14 @@ public class OnNotificationOpenReceiver extends BroadcastReceiver {
                 .edit()
                 .putInt(groupName, 0)
                 .apply();
+
+        int id = data.getInt("notificationId", -1);
+
+        if (id != -1) {
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+            notificationManager.cancel(id);
+            data.remove("notificationId");
+        }
 
         FirebasePlugin.sendNotification(data, context);
 

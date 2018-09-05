@@ -159,10 +159,17 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
             PendingIntent pendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // Intent for notification deleted
-            Intent onNotificationDeleteIntent = new Intent(this, OnNotificationDeletedReceiver.class);
-            onNotificationDeleteIntent.putExtra("groupName", groupName);
-            PendingIntent deletePendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), onNotificationDeleteIntent, 0);
+            intent = new Intent(this, OnNotificationDeletedReceiver.class);
+            intent.putExtra("groupName", groupName);
+            PendingIntent deletePendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), intent, 0);
 
+            // Intent for action rely
+            intent = new Intent(this, OnNotificationOpenReceiver.class);
+            intent.putExtras(bundle);
+            intent.putExtra("groupName", groupName);
+            intent.putExtra("action", "reply");
+            intent.putExtra("notificationId", id.hashCode());
+            PendingIntent actionReplyPendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             String channelId = this.getStringResource("default_notification_channel_id");
             String channelName = this.getStringResource("default_notification_channel_name");
@@ -175,6 +182,8 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
                 inboxStyles = new HashMap<>();
                 count = 1;
             }
+
+
 
             sharedPreferences
                     .edit()
@@ -221,6 +230,10 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
                 notificationBuilder.setSmallIcon(getApplicationInfo().icon);
             }
 
+            if (typeNotif.equals("newEmail")) {
+                notificationBuilder.addAction(-1, "Reply", actionReplyPendingIntent);
+            }
+
             // Sumamry notification
             NotificationCompat.Builder summaryNotificationBuilder = new NotificationCompat.Builder(this, channelId)
                     .setContentTitle(count + " " + getSummaryTitle(typeNotif))
@@ -246,6 +259,7 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
                     bitmapIcon = getRoundedCornerBitmap(bitmapIcon);
 
                     notificationBuilder.setLargeIcon(bitmapIcon);
+                    summaryNotificationBuilder.setLargeIcon(bitmapIcon);
                 } catch (IOException e) {
 
                 }
