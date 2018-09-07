@@ -159,17 +159,16 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
             PendingIntent pendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // Intent for notification deleted
-            intent = new Intent(this, OnNotificationDeletedReceiver.class);
-            intent.putExtra("groupName", groupName);
-            PendingIntent deletePendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), intent, 0);
+            Intent intent2 = new Intent(this, OnNotificationDeletedReceiver.class);
+            intent2.putExtra("groupName", groupName);
+            PendingIntent deletePendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), intent2, 0);
 
-            // Intent for action rely
-            intent = new Intent(this, OnNotificationOpenReceiver.class);
-            intent.putExtras(bundle);
-            intent.putExtra("groupName", groupName);
-            intent.putExtra("action", "reply");
-            intent.putExtra("notificationId", id.hashCode());
-            PendingIntent actionReplyPendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            // Intent for action relpy
+            Intent intent3 = new Intent(this, OnNotificationActionReply.class);
+            intent3.putExtras(bundle);
+            intent3.putExtra("groupName", groupName);
+            intent3.putExtra("notificationId", id.hashCode());
+            PendingIntent actionReplyPendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), intent3, 0);
 
             String channelId = this.getStringResource("default_notification_channel_id");
             String channelName = this.getStringResource("default_notification_channel_name");
@@ -182,8 +181,6 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
                 inboxStyles = new HashMap<>();
                 count = 1;
             }
-
-
 
             sharedPreferences
                     .edit()

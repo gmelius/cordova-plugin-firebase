@@ -12,7 +12,7 @@ import static android.content.Context.MODE_PRIVATE;
 import static android.content.Context.NOTIFICATION_SERVICE;
 import static org.apache.cordova.firebase.FirebasePluginMessagingService.SHARED_PREFERENCES_REF;
 
-public class OnNotificationOpenReceiver extends BroadcastReceiver {
+public class OnNotificationActionReply extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -23,6 +23,7 @@ public class OnNotificationOpenReceiver extends BroadcastReceiver {
 
         Bundle data = intent.getExtras();
         data.putBoolean("tap", true);
+        data.putString("action", "reply");
 
         String groupName = data.getString("groupName");
         SharedPreferences sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_REF, MODE_PRIVATE);
@@ -30,6 +31,14 @@ public class OnNotificationOpenReceiver extends BroadcastReceiver {
                 .edit()
                 .putInt(groupName, 0)
                 .apply();
+
+        int id = data.getInt("notificationId", -1);
+
+        if (id != -1) {
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+            notificationManager.cancel(id);
+            data.remove("notificationId");
+        }
 
         FirebasePlugin.sendNotification(data, context);
 
