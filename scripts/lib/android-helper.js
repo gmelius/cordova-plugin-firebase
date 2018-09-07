@@ -9,7 +9,6 @@ module.exports = {
     var buildGradle = utilities.readBuildGradle();
 
     var addToBuildGradle = [
-      "",
       "// Fabric Cordova Plugin - Start Fabric Build Tools ",
       "buildscript {",
       "    repositories {",
