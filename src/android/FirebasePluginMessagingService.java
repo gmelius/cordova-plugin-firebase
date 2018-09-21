@@ -163,12 +163,19 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
             intent2.putExtra("groupName", groupName);
             PendingIntent deletePendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), intent2, 0);
 
-            // Intent for action relpy
+            // Intent for action reply
             Intent intent3 = new Intent(this, OnNotificationActionReply.class);
             intent3.putExtras(bundle);
             intent3.putExtra("groupName", groupName);
             intent3.putExtra("notificationId", id.hashCode());
             PendingIntent actionReplyPendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), intent3, 0);
+
+            // Intent for action archive
+            Intent intent4 = new Intent(this, OnNotificationActionArchive.class);
+            intent4.putExtras(bundle);
+            intent4.putExtra("groupName", groupName);
+            intent4.putExtra("notificationId", id.hashCode());
+            PendingIntent actionArchivePendingIntent = PendingIntent.getBroadcast(this, id.hashCode(), intent4, 0);
 
             String channelId = this.getStringResource("default_notification_channel_id");
             String channelName = this.getStringResource("default_notification_channel_name");
@@ -228,6 +235,7 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
             }
 
             if (typeNotif.equals("newEmail")) {
+                notificationBuilder.addAction(-1, "Archive", actionArchivePendingIntent);
                 notificationBuilder.addAction(-1, "Reply", actionReplyPendingIntent);
             }
 
