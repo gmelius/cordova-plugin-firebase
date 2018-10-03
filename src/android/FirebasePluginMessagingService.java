@@ -152,6 +152,8 @@ public class FirebasePluginMessagingService extends FirebaseMessagingService {
 
             sharedPreferences = this.getSharedPreferences(SHARED_PREFERENCES_REF, MODE_PRIVATE);
 
+            messageBody = Html.fromHtml(messageBody).toString();
+
             // Intent for notification open
             Intent intent = new Intent(this, OnNotificationOpenReceiver.class);
             intent.putExtras(bundle);
