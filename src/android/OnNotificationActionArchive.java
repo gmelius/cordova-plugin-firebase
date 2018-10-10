@@ -11,7 +11,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebChromeClient;
 
-import com.gmelius.gmailapp.R;
+import com.gmelius.app.R;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaArgs;
