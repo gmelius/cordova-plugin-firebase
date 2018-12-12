@@ -59,7 +59,7 @@ import com.google.firebase.FirebaseTooManyRequestsException;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
 
-import static android.content.Context.Context.MODE_PRIVATE;
+import static android.content.Context.MODE_PRIVATE;
 import com.gmelius.app.R;
 
 public class FirebasePlugin extends CordovaPlugin {
@@ -107,7 +107,7 @@ public class FirebasePlugin extends CordovaPlugin {
         final CordovaInterface cordova = this.cordova;
 
         Runnable runnable = () -> {
-            final SharedPreferences settings = cordova.getActivity().getSharedPreferences("ProtectedApps", Context.MODE_PRIVATE);
+            final SharedPreferences settings = cordova.getActivity().getSharedPreferences("ProtectedApps", MODE_PRIVATE);
             final String saveIfSkip = "skipProtectedAppsMessage";
             boolean skipMessage = settings.getBoolean(saveIfSkip, false);
 
@@ -470,7 +470,7 @@ public class FirebasePlugin extends CordovaPlugin {
             public void run() {
                 try {
                     Context context = cordova.getActivity();
-                    SharedPreferences.Editor editor = context.getSharedPreferences(KEY, Context.MODE_PRIVATE).edit();
+                    SharedPreferences.Editor editor = context.getSharedPreferences(KEY, MODE_PRIVATE).edit();
                     editor.putInt(KEY, number);
                     editor.apply();
                     ShortcutBadger.applyCount(context, number);
@@ -487,7 +487,7 @@ public class FirebasePlugin extends CordovaPlugin {
             public void run() {
                 try {
                     Context context = cordova.getActivity();
-                    SharedPreferences settings = context.getSharedPreferences(KEY, Context.MODE_PRIVATE);
+                    SharedPreferences settings = context.getSharedPreferences(KEY, MODE_PRIVATE);
                     int number = settings.getInt(KEY, 0);
                     callbackContext.success(number);
                 } catch (Exception e) {
