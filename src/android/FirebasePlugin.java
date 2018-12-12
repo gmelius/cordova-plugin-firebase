@@ -1,13 +1,18 @@
 package org.apache.cordova.firebase;
 
-import android.content.ComponentName;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.CheckBox;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -27,6 +32,7 @@ import com.google.firebase.perf.metrics.Trace;
 import me.leolin.shortcutbadger.ShortcutBadger;
 
 import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
 import org.apache.cordova.CordovaWebView;
@@ -34,23 +40,27 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 // Firebase PhoneAuth
 import java.util.concurrent.TimeUnit;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.FirebaseException;
-import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.FirebaseTooManyRequestsException;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
+
+import static android.content.Context.Context.MODE_PRIVATE;
+import com.gmelius.app.R;
 
 public class FirebasePlugin extends CordovaPlugin {
 
@@ -83,9 +93,99 @@ public class FirebasePlugin extends CordovaPlugin {
                         notificationStack.add(extras);
                     }
                 }
+
+                // If the device is a Huawei, show dialog for say that the app need to be in 'Protected Apps'.
+                ifHuaweiAlert();
             }
         });
     }
+
+    /**** CHECK IF APP IS PROTECTED FOR HUAWEI DEVICES ****/
+    // Get from: https://stackoverflow.com/a/35220476
+
+    private void ifHuaweiAlert() {
+        final CordovaInterface cordova = this.cordova;
+
+        Runnable runnable = () -> {
+            final SharedPreferences settings = cordova.getActivity().getSharedPreferences("ProtectedApps", Context.MODE_PRIVATE);
+            final String saveIfSkip = "skipProtectedAppsMessage";
+            boolean skipMessage = settings.getBoolean(saveIfSkip, false);
+
+            if (!skipMessage) {
+                final SharedPreferences.Editor editor = settings.edit();
+                Intent intent = new Intent();
+                intent.setClassName("com.huawei.systemmanager", "com.huawei.systemmanager.optimize.process.ProtectActivity");
+                // Check if the device is an Huawei.
+                if (isCallable(intent)) {
+                    final CheckBox dontShowAgain = new CheckBox(cordova.getActivity());
+                    dontShowAgain.setText("Do not show again");
+                    dontShowAgain.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                        editor.putBoolean(saveIfSkip, isChecked);
+                        editor.apply();
+                    });
+
+                    new AlertDialog.Builder(cordova.getActivity())
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setTitle("Huawei Protected Apps")
+                            .setMessage(String.format("%s requires to be enabled in 'Protected Apps' to function properly.%n", cordova.getActivity().getString(R.string.app_name)))
+                            .setView(dontShowAgain)
+                            .setPositiveButton("Protected Apps", (dialog, which) -> huaweiProtectedApps())
+                            .setNegativeButton(android.R.string.cancel, null)
+                            .create()
+                            .show();
+                } else {
+                    editor.putBoolean(saveIfSkip, true);
+                    editor.apply();
+                }
+            }
+        };
+
+        this.cordova.getActivity().runOnUiThread(runnable);
+    }
+
+    private boolean isCallable(Intent intent) {
+        List<ResolveInfo> list = this.cordova.getActivity().getApplicationContext().getPackageManager().queryIntentActivities(intent,
+                PackageManager.MATCH_DEFAULT_ONLY);
+        return list.size() > 0;
+
+    }
+
+    private void huaweiProtectedApps() {
+        try {
+            // Go to the 'Protected Apps' settings.
+            String cmd = "am start -n com.huawei.systemmanager/.optimize.process.ProtectActivity";
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                cmd += " --user " + getUserSerial();
+            }
+            Runtime.getRuntime().exec(cmd);
+        } catch (IOException ignored) {
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
+    private String getUserSerial() {
+        //noinspection ResourceType
+        Object userManager = this.cordova.getActivity().getSystemService(Context.USER_SERVICE);
+        if (null == userManager) return "";
+
+        try {
+            Method myUserHandleMethod = android.os.Process.class.getMethod("myUserHandle", (Class<?>[]) null);
+            Object myUserHandle = myUserHandleMethod.invoke(android.os.Process.class, (Object[]) null);
+            Method getSerialNumberForUser = userManager.getClass().getMethod("getSerialNumberForUser", myUserHandle.getClass());
+            Long userSerial = (Long) getSerialNumberForUser.invoke(userManager, myUserHandle);
+            if (userSerial != null) {
+                return String.valueOf(userSerial);
+            } else {
+                return "";
+            }
+        } catch (NoSuchMethodException | IllegalArgumentException | InvocationTargetException | IllegalAccessException ignored) {
+        }
+        return "";
+    }
+
+
+    /**** END ****/
+
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
