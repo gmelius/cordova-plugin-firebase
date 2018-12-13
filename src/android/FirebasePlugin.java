@@ -12,7 +12,9 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Base64;
 import android.util.Log;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -124,12 +126,19 @@ public class FirebasePlugin extends CordovaPlugin {
                         editor.apply();
                     });
 
+                    LinearLayout ll = new LinearLayout(cordova.getActivity());
+                    ViewGroup.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    ll.setPadding(38, 0, 0, 0);
+                    ll.setLayoutParams(lp);
+
+                    ll.addView(dontShowAgain);
+
                     new AlertDialog.Builder(cordova.getActivity())
                             .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setTitle("Huawei Protected Apps")
-                            .setMessage(String.format("%s requires to be enabled in 'Protected Apps' to function properly.%n", cordova.getActivity().getString(R.string.app_name)))
-                            .setView(dontShowAgain)
-                            .setPositiveButton("Protected Apps", (dialog, which) -> huaweiProtectedApps())
+                            .setTitle(String.format("Enable %s in Protected Apps", cordova.getActivity().getString(R.string.app_name)))
+                            .setMessage(String.format("%s requires to be enabled in ‘Protected Apps’ to receive push notifications.%n", cordova.getActivity().getString(R.string.app_name)))
+                            .setView(ll)
+                            .setPositiveButton("GO TO PROTECTED APPS", (dialog, which) -> huaweiProtectedApps())
                             .setNegativeButton(android.R.string.cancel, null)
                             .create()
                             .show();
