@@ -105,7 +105,15 @@ xmlns:android="http://schemas.android.com/apk/res/android">
 		<header-file src="src/ios/FirebasePlugin.h" />
 		<source-file src="src/ios/FirebasePlugin.m" />
 
+		<framework src="FirebaseAnalytics" type="podspec" spec="~> 5.4.0" />
+		<framework src="FirebaseMessaging" type="podspec" spec="~> 3.2.2" />
+		<framework src="FirebaseRemoteConfig" type="podspec" spec="~> 3.1.0" />
+		<framework src="FirebaseAuth" type="podspec" spec="~> 5.2.0" />
+		<framework src="FirebasePerformance" type="podspec" spec="~> 2.2.2" />
+
+		<!--
 		<header-file src="src/ios/Firebase/Firebase.h" />
+
 
 		<framework custom="true" src="src/ios/Firebase/Analytics/FirebaseAnalytics.framework" />
 		<framework custom="true" src="src/ios/Firebase/Analytics/FirebaseCore.framework" />
@@ -114,17 +122,23 @@ xmlns:android="http://schemas.android.com/apk/res/android">
 		<framework custom="true" src="src/ios/Firebase/Analytics/FirebaseNanoPB.framework" />
 		<framework custom="true" src="src/ios/Firebase/Analytics/GoogleToolboxForMac.framework" />
 		<framework custom="true" src="src/ios/Firebase/Analytics/nanopb.framework" />
+
 		<framework custom="true" src="src/ios/Firebase/Messaging/Protobuf.framework" />
 		<framework custom="true" src="src/ios/Firebase/Messaging/FirebaseMessaging.framework" />
+
 		<framework custom="true" src="src/ios/Firebase/Crashlytics/Fabric.framework" />
 		<framework custom="true" src="src/ios/Firebase/Crashlytics/Crashlytics.framework" />
+
 		<framework custom="true" src="src/ios/Firebase/RemoteConfig/FirebaseRemoteConfig.framework" />
 		<framework custom="true" src="src/ios/Firebase/RemoteConfig/FirebaseABTesting.framework" />
+
 		<framework custom="true" src="src/ios/Firebase/Auth/FirebaseAuth.framework" />
 		<framework custom="true" src="src/ios/Firebase/Auth/GTMSessionFetcher.framework" />
+
 		<framework custom="true" src="src/ios/Firebase/Performance/FirebasePerformance.framework" />
 		<framework custom="true" src="src/ios/Firebase/Performance/FirebaseISASwizzler.framework" />
-		<framework custom="true" src="src/ios/Firebase/Performance/FirebaseMethodSwizzler.framework" />
+		<framework custom="true" src="src/ios/Firebase/Performance/FirebaseMethodSwizzler.framework" /> 
+		-->
 	</platform>
 
 	<platform name="browser">
