@@ -105,44 +105,9 @@ xmlns:android="http://schemas.android.com/apk/res/android">
 		<header-file src="src/ios/FirebasePlugin.h" />
 		<source-file src="src/ios/FirebasePlugin.m" />
 
-		<framework src="Firebase/Auth" type="podspec" />
-		<framework src="Firebase/Messaging" type="podspec" />
-		<framework src="Firebase/Performance" type="podspec" />
-
-		<!--
-
-		<framework src="FirebaseAnalytics" type="podspec" spec="~> 5.4.0" />
-		<framework src="FirebaseRemoteConfig" type="podspec" spec="~> 3.1.0" />
-		<framework src="FirebasePerformance" type="podspec" spec="~> 2.2.2" />
-		<framework src="FirebaseInstanceID" type="podspec" spec="~> 1.0.6" />
-
-		<header-file src="src/ios/Firebase/Firebase.h" />
-
-
-		<framework custom="true" src="src/ios/Firebase/Analytics/FirebaseAnalytics.framework" />
-		<framework custom="true" src="src/ios/Firebase/Analytics/FirebaseCore.framework" />
-		<framework custom="true" src="src/ios/Firebase/Analytics/FirebaseCoreDiagnostics.framework" />
-		<framework custom="true" src="src/ios/Firebase/Analytics/FirebaseInstanceID.framework" />
-		<framework custom="true" src="src/ios/Firebase/Analytics/FirebaseNanoPB.framework" />
-		<framework custom="true" src="src/ios/Firebase/Analytics/GoogleToolboxForMac.framework" />
-		<framework custom="true" src="src/ios/Firebase/Analytics/nanopb.framework" />
-
-		<framework custom="true" src="src/ios/Firebase/Messaging/Protobuf.framework" />
-		<framework custom="true" src="src/ios/Firebase/Messaging/FirebaseMessaging.framework" />
-
-		<framework custom="true" src="src/ios/Firebase/Crashlytics/Fabric.framework" />
-		<framework custom="true" src="src/ios/Firebase/Crashlytics/Crashlytics.framework" />
-
-		<framework custom="true" src="src/ios/Firebase/RemoteConfig/FirebaseRemoteConfig.framework" />
-		<framework custom="true" src="src/ios/Firebase/RemoteConfig/FirebaseABTesting.framework" />
-
-		<framework custom="true" src="src/ios/Firebase/Auth/FirebaseAuth.framework" />
-		<framework custom="true" src="src/ios/Firebase/Auth/GTMSessionFetcher.framework" />
-
-		<framework custom="true" src="src/ios/Firebase/Performance/FirebasePerformance.framework" />
-		<framework custom="true" src="src/ios/Firebase/Performance/FirebaseISASwizzler.framework" />
-		<framework custom="true" src="src/ios/Firebase/Performance/FirebaseMethodSwizzler.framework" /> 
-		-->
+		<framework src="Firebase/Auth" type="podspec" spec=""/>
+		<framework src="Firebase/Messaging" type="podspec" spec=""/>
+		<framework src="Firebase/Performance" type="podspec" spec=""/>
 	</platform>
 
 	<platform name="browser">

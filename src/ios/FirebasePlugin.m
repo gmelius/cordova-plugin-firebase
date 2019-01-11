@@ -1,7 +1,11 @@
 #import "FirebasePlugin.h"
 #import <Cordova/CDV.h>
 #import "AppDelegate.h"
-#import "Firebase.h"
+#import "FirebaseAuth.h"
+#import "FirebaseMessaging.h"
+#import "FIRApp.h"
+#import "FIRAnalyticsConfiguration.h"
+#import "FIRPhoneAuthProvider.h"
 #import <Fabric/Fabric.h>
 #import <Crashlytics/Crashlytics.h>
 @import FirebaseInstanceID;
@@ -238,9 +242,7 @@ static FirebasePlugin *firebasePlugin;
 - (void)getVerificationID:(CDVInvokedUrlCommand *)command {
     NSString* number = [command.arguments objectAtIndex:0];
 
-    [[FIRPhoneAuthProvider provider]
-    verifyPhoneNumber:number
-           completion:^(NSString *_Nullable verificationID, NSError *_Nullable error) {
+    [[FIRPhoneAuthProvider provider] verifyPhoneNumber:number UIDelegate:nil completion:^(NSString *_Nullable verificationID, NSError *_Nullable error) {
 
     NSDictionary *message;
 
