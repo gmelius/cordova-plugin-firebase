@@ -1,7 +1,6 @@
 #import "FirebasePlugin.h"
 #import <Cordova/CDV.h>
 #import "AppDelegate.h"
-#import "Firebase.h"
 #import <Fabric/Fabric.h>
 #import <Crashlytics/Crashlytics.h>
 @import FirebaseInstanceID;
@@ -10,6 +9,7 @@
 @import FirebaseRemoteConfig;
 @import FirebasePerformance;
 @import FirebaseAuth;
+@import FirebaseCore;
 
 #if defined(__IPHONE_10_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_10_0
 @import UserNotifications;
