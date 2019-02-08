@@ -169,13 +169,6 @@
        willPresentNotification:(UNNotification *)notification
          withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
 
-    [self.delegate userNotificationCenter:center
-              willPresentNotification:notification
-                withCompletionHandler:completionHandler];
-
-    if (![notification.request.trigger isKindOfClass:UNPushNotificationTrigger.class])
-        return;
-
     NSDictionary *mutableUserInfo = [notification.request.content.userInfo mutableCopy];
 
     [mutableUserInfo setValue:self.applicationInBackground forKey:@"tap"];
@@ -183,7 +176,6 @@
     // Print full message.
     NSLog(@"%@", mutableUserInfo);
 
-    completionHandler(UNNotificationPresentationOptionAlert);
     [FirebasePlugin.firebasePlugin sendNotification:mutableUserInfo];
 }
 
