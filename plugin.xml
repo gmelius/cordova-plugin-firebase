@@ -109,8 +109,8 @@ xmlns:android="http://schemas.android.com/apk/res/android">
 
    <pods-config ios-min-version="8.0" use-frameworks="true"></pods-config>
 
-    <pod name="FirebaseAuth" spec="~> 5.3.0"/>
-    <pod name="FirebaseMessaging" spec="~> 3.3.0"/>
+    <pod name="FirebaseAuth" spec="~> 5.2.0"/>
+    <pod name="FirebaseMessaging" spec="~> 3.2.0"/>
     <pod name="FirebasePerformance" spec="~> 2.2.2"/>
   </platform>
 
