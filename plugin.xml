@@ -120,9 +120,7 @@ xmlns:android="http://schemas.android.com/apk/res/android">
     </js-module>
   </platform>
 
-  <!--
   <hook src="scripts/after_prepare.js" type="after_prepare" />
   <hook src="scripts/after_plugin_add.js" type="after_prepare" />
   <hook src="scripts/before_plugin_rm.js" type="before_plugin_rm" />
-  -->
 </plugin>
